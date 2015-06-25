@@ -24,7 +24,7 @@ var start_time = new Date();
 var end_time = new Date(start_time.getTime() + 60*60000);
 
 /**
- * 
+ *
  */
 getRecording(function(err,getBatch) {
 
@@ -67,7 +67,7 @@ function getRecording(done) {
 function getSegments(done) {
 
     for (var i = batchMin; i <= batchMax; i++) {
-        myBucket.get(i, function (err, done) {
+        myBucket.get(i.toString(), function (err, done) {
             if (err) {
                 console.log("ERR:", err.message);
                 done(err,null);
@@ -75,7 +75,7 @@ function getSegments(done) {
             }
             if(done) {
                 incnumber++;
-                segmentArray.push(thisBatch);
+                segmentArray.push(done);
                 console.log(segmentArray);
                 if (incnumber == segments) {
                     return;
