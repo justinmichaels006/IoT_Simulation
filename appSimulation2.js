@@ -10,11 +10,8 @@ var driver = require("couchbase");
 var cb = new driver.Cluster("192.168.106.101:8091");
 var myBucket = cb.openBucket("recording");
 var maxdocs = 5000; // Total number of users
-var streamMin = 10;  // Shows Minimum
-var streamMax = 20;  // Shows Maximum
-var batchMin = 1;  // Shows Minimum
-var batchMax = 11;  // Shows Maximum
-var segments = 1800 // Show segments (1 hours recordings)
+var theBatch = null;
+var totalSegments = 1800;
 var IRID = randomInt(1, maxdocs).toString();
 
 var incnumber = 0;      // Control loop counter
@@ -27,21 +24,21 @@ var end_time = new Date(start_time.getTime() + 60*60000);
  *
  */
 getRecording(function(err,getBatch) {
-
     if (err) {
         console.log(err);
         return;
     }
     if (getBatch) {
-        console.log("BATCH: " + getBatch + " for IRID " + IRID);
-        getSegments(function (err, resultData) {
-            console.log("SEGMENTS: " + resultData)
-            if (err) {
-                console.log(err);
-                return;
-            }
-        })
-    }
+        console.log(IRID + " Recording Started: Batch " + getBatch);
+        getSegments(function(err,resultSegments) {
+                if (err) {
+                    return console.log(err);
+                }
+                if (resultSegments) {
+                    //do something
+                }
+            })
+        }
 });
 /**
  *
@@ -56,9 +53,8 @@ function getRecording(done) {
             return;
         }
         if (playBack) {
-            console.log(IRID + " Recording Started: Batch " + playBack);
-            done(null, playBack);
-            return;
+            console.log("Recording: " + IRID + " Requested");
+            return done(null, JSON.stringify(playBack));
         }
     })
 
@@ -66,8 +62,9 @@ function getRecording(done) {
 
 function getSegments(done) {
 
-    for (var i = batchMin; i <= batchMax; i++) {
-        myBucket.get(i.toString(), function (err, done) {
+    for (var i; i < totalSegments; i++) {
+        var theKey = (theBatch + "::" + i).toString();
+        myBucket.get(theKey, function (err, done) {
             if (err) {
                 console.log("ERR:", err.message);
                 done(err,null);
@@ -75,14 +72,22 @@ function getSegments(done) {
             }
             if(done) {
                 incnumber++;
-                segmentArray.push(done);
-                console.log(segmentArray);
+                segmentArray.push(done._irid);
+                //console.log("DEBUG: ",segmentArray);
                 if (incnumber == segments) {
-                    return;
+                    return(null,segmentArray.length);
                 }
             }
         });
     }
+}
+/**
+ *
+ * @param done
+ */
+function getSegments(done) {
+    //console.log("SEGMENTS: " + getSegments)
+    return;
 }
 
 function randomNum(hi){
