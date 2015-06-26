@@ -1,7 +1,6 @@
 var http = require("http");
 var express = require('express');
 var app = express();
-var lineReader = require('line-reader');
 var uuid = require('uuid');
 
 //global
