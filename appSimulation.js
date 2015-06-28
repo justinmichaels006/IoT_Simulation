@@ -9,8 +9,8 @@ var driver = require("couchbase");
 var cb = new driver.Cluster("192.168.106.101:8091");
 var myBucket = cb.openBucket("recording");
 var maxdocs = 5000; // Total number of users
-var streamMin = 10;  // Shows Minimum
-var streamMax = 20;  // Shows Maximum
+var streamMin = 10;  // Minimum
+var streamMax = 20;  // Maximum
 var batchMin = 1;  // Shows Minimum
 var batchMax = 11;  // Shows Maximum
 var segments = 1800 // Show segments (1 hours recordings)
@@ -22,6 +22,7 @@ var start_time = new Date();
 var end_time = new Date(start_time.getTime() + 60*60000);
 
 /**
+ *
  *
  */
 IRIDburst(function(err,iridCount){
@@ -55,11 +56,13 @@ IRIDburst(function(err,iridCount){
 /**
  *
  * @param done
- * @constructor
+ * Creation of recording documents based on incrementing value
+ * XRID to IRID translation is controlled within RIO
+ * Can we use XRID as key in recording document?
  */
 function IRIDburst(done) {
     for(var i=1;i<=maxdocs;i++){
-        //console.log(start_time + "   " + start_time.getMinutes());
+        // Recording document definition
         var recordingDoc = {
             "_irid":i,
             "xrid": uuid.v1(),
@@ -77,7 +80,9 @@ function IRIDburst(done) {
             "is_rm_notify" : "false"
         }
         /**
-         *
+         * Simulate users requesting simultaneous recordings
+         * maxdocs represents the total number of customer requests
+         * recordingDoc is the individual recording document per customer per show
          */
         myBucket.upsert(recordingDoc._irid.toString(), recordingDoc, function (err, newIRID) {
             if (err) {
@@ -99,6 +104,9 @@ function IRIDburst(done) {
 /**
  *
  * @param done
+ * Create a batch document based on recording requests
+ * For each batch a batchDoc is created.
+ * This will drive the segment document count and creation.
  */
 function setBatch(done) {
     var batchDoc = {
@@ -131,6 +139,8 @@ function setBatch(done) {
 /**
  *
  * @param resultRecord
+ * Create a segment for 2 second interval of the complete recording request.
+ *
  */
 function segmentBurst(resultRecord) {
     console.log("  BATCH:BURST");
