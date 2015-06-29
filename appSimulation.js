@@ -56,8 +56,8 @@ IRIDburst(function(err,iridCount){
 /**
  *
  * @param done
- * Creation of recording documents based on incrementing value
- * XRID to IRID translation is controlled within RIO
+ * Creation of recording documents based on incrementing value defined by maxdocs.
+ * XRID to IRID translation is controlled within RIO.
  * Can we use XRID as key in recording document?
  */
 function IRIDburst(done) {
@@ -104,9 +104,8 @@ function IRIDburst(done) {
 /**
  *
  * @param done
- * Create a batch document based on recording requests
+ * Create a batch document based on recording requests using the batch_id from the recording documents.
  * For each batch a batchDoc is created.
- * This will drive the segment document count and creation.
  */
 function setBatch(done) {
     var batchDoc = {
@@ -139,8 +138,7 @@ function setBatch(done) {
 /**
  *
  * @param resultRecord
- * Create a segment for 2 second interval of the complete recording request.
- *
+ * For each segment needed pass the batch id to the segment builder.
  */
 function segmentBurst(resultRecord) {
     console.log("  BATCH:BURST");
@@ -170,6 +168,8 @@ function segmentBurst(resultRecord) {
  *
  * @param batchID
  * @param done
+ * Create a segment for 2 second interval of the complete recording request.
+ * For now we are assuming 1 hour shows (1800 segments). Modify to calculate based on start/stop time.
  */
 function buildSegment(batchID,done) {
     console.log("    SEGMENT:BATCH ",batchID,":",segments, " segments");
@@ -249,4 +249,7 @@ function randomInt (mincount, maxcount) {
     return Math.floor(Math.random() * (maxcount - mincount) + mincount);
 }
 
+/**
+ * To Do: Add UI interface
+ */
 app.listen(3000);
